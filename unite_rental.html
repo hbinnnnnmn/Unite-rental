@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNITE 물품 대여 서비스</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Bebas+Neue&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: #f4f6fb; color: #1a1f3e; min-height: 100vh; }
+  .hero { background: linear-gradient(135deg, #1a2a6c 0%, #2d3aad 60%, #1a2a6c 100%); padding: 48px 24px 36px; text-align: center; }
+  .dept-label { font-size: 12px; letter-spacing: 3px; color: #b8c8ff; margin-bottom: 8px; }
+  .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 4px; color: #fff; line-height: 1; margin-bottom: 4px; }
+  .hero-sub { font-size: 13px; color: #b8c8ff; letter-spacing: 1px; margin-bottom: 20px; }
+  .badge { display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: #fff; font-size: 12px; padding: 4px 14px; border-radius: 20px; }
+  .tab-bar { display: flex; background: #fff; border-bottom: 2px solid #e0e6f5; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .tab-btn { flex: 1; padding: 16px; background: none; border: none; color: #6b7db3; font-family: 'Noto Sans KR', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .tab-btn.active { color: #2d3aad; border-bottom-color: #2d3aad; background: #f0f3ff; font-weight: 700; }
+  .content { max-width: 480px; margin: 0 auto; padding: 28px 20px; }
+  .section-title { font-size: 11px; letter-spacing: 3px; color: #6b7db3; font-weight: 700; margin-bottom: 16px; }
+  .items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
+  .item-card { background: #fff; border: 2px solid #dde4f5; border-radius: 14px; padding: 20px 16px; cursor: pointer; transition: all 0.2s; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .item-card:hover { border-color: #2d3aad; background: #f0f3ff; }
+  .item-card.selected { border-color: #2d3aad; background: #eef1ff; box-shadow: 0 0 0 3px rgba(45,58,173,0.12); }
+  .item-icon { font-size: 32px; margin-bottom: 10px; display: block; }
+  .item-name { font-size: 14px; font-weight: 700; color: #1a1f3e; }
+  .item-desc { font-size: 11px; color: #8a9dc0; margin-top: 4px; }
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 13px; color: #2d3aad; font-weight: 700; margin-bottom: 6px; }
+  .form-input { width: 100%; background: #fff; border: 1.5px solid #c8d4f0; border-radius: 10px; color: #1a1f3e; font-family: 'Noto Sans KR', sans-serif; font-size: 14px; padding: 12px 14px; outline: none; transition: border-color 0.2s; }
+  .form-input:focus { border-color: #2d3aad; box-shadow: 0 0 0 3px rgba(45,58,173,0.1); }
+  .form-input::placeholder { color: #b0bcd8; }
+  .upload-box { width: 100%; background: #fff; border: 2px dashed #c8d4f0; border-radius: 10px; padding: 28px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+  .upload-box:hover { border-color: #2d3aad; background: #f0f3ff; }
+  .upload-box input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 28px; margin-bottom: 6px; }
+  .upload-text { font-size: 12px; color: #6b7db3; }
+  .upload-preview { max-width: 100%; max-height: 120px; border-radius: 8px; margin-top: 8px; display: none; }
+  .oath-box { background: #fff; border: 1.5px solid #dde4f5; border-radius: 12px; padding: 18px; margin-bottom: 18px; font-size: 13px; color: #3a4a7a; line-height: 1.8; }
+  .oath-box strong { color: #1a1f3e; }
+  .signature-area { background: #fff; border: 2px solid #c8d4f0; border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
+  .sig-label { font-size: 12px; color: #6b7db3; font-weight: 700; padding: 8px 14px; border-bottom: 1px solid #e8edf8; background: #f4f6fb; }
+  canvas#sigCanvas { display: block; width: 100%; height: 140px; cursor: crosshair; touch-action: none; background: #fff; }
+  .sig-actions { display: flex; justify-content: flex-end; padding: 8px 12px; background: #f4f6fb; border-top: 1px solid #e8edf8; }
+  .sig-clear { background: none; border: 1.5px solid #c8d4f0; color: #6b7db3; font-size: 12px; font-weight: 500; padding: 4px 14px; border-radius: 6px; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; }
+  .btn-primary { width: 100%; background: #2d3aad; border: none; border-radius: 12px; color: #fff; font-family: 'Noto Sans KR', sans-serif; font-size: 15px; font-weight: 700; padding: 16px; cursor: pointer; transition: background 0.2s; margin-top: 8px; }
+  .btn-primary:hover { background: #1e2a8a; }
+  .btn-primary:disabled { background: #c8d4f0; color: #8a9dc0; cursor: not-allowed; }
+  .btn-outline { width: 100%; background: #fff; border: 1.5px solid #c8d4f0; border-radius: 12px; color: #2d3aad; font-family: 'Noto Sans KR', sans-serif; font-size: 14px; font-weight: 500; padding: 14px; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
+  .btn-outline:hover { background: #f0f3ff; border-color: #2d3aad; }
+  .success-screen { text-align: center; padding: 40px 0; display: none; }
+  .success-icon { font-size: 56px; margin-bottom: 20px; }
+  .pw-box { background: linear-gradient(135deg, #2d3aad, #4a5ce0); border-radius: 16px; padding: 28px; margin: 24px 0; }
+  .pw-label { font-size: 12px; color: rgba(255,255,255,0.75); letter-spacing: 2px; margin-bottom: 10px; }
+  .pw-number { font-family: 'Bebas Neue', sans-serif; font-size: 64px; color: #fff; letter-spacing: 6px; }
+  .pw-hint { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 8px; }
+  .success-msg { font-size: 14px; color: #3a4a7a; line-height: 1.7; }
+  .step-indicator { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 24px; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: #dde4f5; transition: all 0.3s; }
+  .step-dot.active { background: #2d3aad; width: 24px; border-radius: 4px; }
+  .step-dot.done { background: #7b9fff; }
+  .hidden { display: none; }
+  .notice { background: #fff8e8; border: 1.5px solid #f0d080; border-radius: 10px; padding: 12px 14px; font-size: 12px; color: #8a6a10; font-weight: 500; margin-bottom: 18px; line-height: 1.6; }
+  .selected-badge { margin-bottom: 18px; padding: 10px 14px; background: #eef1ff; border-radius: 10px; font-size: 13px; color: #2d3aad; font-weight: 700; border: 1.5px solid #c8d4f0; }
+  .return-done { text-align: center; padding: 40px 0; display: none; }
+  .divider { height: 1px; background: #e0e6f5; margin: 24px 0; }
+  .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.85); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+  .loading-overlay.show { display: flex; }
+  .spinner { width: 36px; height: 36px; border: 3px solid #dde4f5; border-top-color: #2d3aad; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 14px; color: #2d3aad; font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">전송 중...</div>
+</div>
+
+<div class="hero">
+  <div class="dept-label">영어문화학과 제38대 학생회</div>
+  <h1>UNITE</h1>
+  <div class="hero-sub">물품 대여 서비스</div>
+  <span class="badge">Unite Rental Service</span>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('rent', this)">📦 물품 대여</button>
+  <button class="tab-btn" onclick="switchTab('return', this)">↩️ 물품 반납</button>
+</div>
+
+<div id="rentSection" class="content">
+  <div id="step1">
+    <div class="step-indicator">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+    <div class="section-title">대여할 물품을 선택하세요</div>
+    <div class="items-grid">
+      <div class="item-card" onclick="selectItem(this, '우산')">
+        <span class="item-icon">☂️</span>
+        <div class="item-name">우산</div>
+        <div class="item-desc">장우산</div>
+      </div>
+      <div class="item-card" onclick="selectItem(this, '보조배터리')">
+        <span class="item-icon">🔋</span>
+        <div class="item-name">보조배터리</div>
+        <div class="item-desc">고속충전 지원</div>
+      </div>
+      <div class="item-card" onclick="selectItem(this, '돗자리')">
+        <span class="item-icon">🛖</span>
+        <div class="item-name">돗자리</div>
+        <div class="item-desc">대형 돗자리</div>
+      </div>
+      <div class="item-card" onclick="selectItem(this, '라켓&셔틀콕 세트')">
+        <span class="item-icon">🏸</span>
+        <div class="item-name">라켓 & 셔틀콕</div>
+        <div class="item-desc">배드민턴 세트</div>
+      </div>
+    </div>
+    <button class="btn-primary" id="nextBtn1" onclick="goStep2()" disabled>다음 단계 →</button>
+  </div>
+
+  <div id="step2" class="hidden">
+    <div class="step-indicator">
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+    </div>
+    <div class="section-title">신청자 정보 입력</div>
+    <div class="selected-badge" id="selectedItemBadge"></div>
+    <div class="form-group">
+      <label class="form-label">이름</label>
+      <input class="form-input" type="text" id="userName" placeholder="이름을 입력하세요">
+    </div>
+    <div class="form-group">
+      <label class="form-label">학번</label>
+      <input class="form-input" type="text" id="userStudentId" placeholder="학번을 입력하세요">
+    </div>
+    <div class="form-group">
+      <label class="form-label">학생증 사진 첨부</label>
+      <div class="upload-box" onclick="document.getElementById('idFile').click()">
+        <input type="file" id="idFile" accept="image/*" style="display:none" onchange="previewImage(event,'idPreview','idUploadContent')">
+        <div id="idUploadContent">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">학생증 사진을 업로드하세요<br><span style="font-size:10px;color:#b0bcd8;">클릭해서 사진을 선택하세요</span></div>
+        </div>
+        <img id="idPreview" class="upload-preview">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn-outline" onclick="goStep1()">← 이전</button>
+      <button class="btn-primary" onclick="goStep3()" style="margin-top:0">다음 단계 →</button>
+    </div>
+  </div>
+
+  <div id="step3" class="hidden">
+    <div class="step-indicator">
+      <div class="step-dot done"></div>
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+    </div>
+    <div class="section-title">물품 대여 서약서</div>
+    <div class="oath-box">
+      <strong>물품 대여 서약서</strong><br><br>
+      본인은 영어문화학과 제38대 학생회 <strong>유나이트(UNITE)</strong>의 물품을 대여함에 있어 아래 사항을 성실히 이행할 것을 서약합니다.<br><br>
+      1. 대여한 물품을 소중히 사용하고, <strong>훼손·분실 시 변상</strong>의 책임이 있음을 인지합니다.<br>
+      2. 대여 기간 내에 반납하지 않을 경우, 추후 <strong>대여 서비스 이용이 제한</strong>될 수 있음을 동의합니다.<br>
+      3. 물품은 반드시 <strong>대여 당일 또는 익일</strong>까지 반납합니다.<br>
+      4. 본 서약은 전자서명으로 효력이 발생합니다.
+    </div>
+    <div class="notice">✏️ 아래 서명란에 손가락 또는 마우스로 서명해 주세요.</div>
+    <div class="signature-area">
+      <div class="sig-label">전자서명란</div>
+      <canvas id="sigCanvas" width="440" height="140"></canvas>
+      <div class="sig-actions">
+        <button class="sig-clear" onclick="clearSig()">서명 지우기</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn-outline" onclick="goStep2Back()">← 이전</button>
+      <button class="btn-primary" onclick="submitRent()" style="margin-top:0">대여 신청 완료 ✓</button>
+    </div>
+  </div>
+
+  <div id="successScreen" class="success-screen">
+    <div class="success-icon">✅</div>
+    <div style="font-size:22px;font-weight:700;color:#1a1f3e;margin-bottom:8px;">대여 신청 완료!</div>
+    <div class="success-msg">서약이 접수되었습니다.<br>아래 비밀번호로 사물함을 열어주세요.</div>
+    <div class="pw-box">
+      <div class="pw-label">사물함 비밀번호</div>
+      <div class="pw-number">2026</div>
+      <div class="pw-hint">대여 후 사물함을 꼭 잠가주세요</div>
+    </div>
+    <div class="success-msg" style="font-size:12px;">반납 시에는 상단 <strong style="color:#2d3aad;">물품 반납</strong> 탭을 이용해 주세요.</div>
+    <button class="btn-outline" onclick="resetRent()">처음으로 돌아가기</button>
+  </div>
+</div>
+
+<div id="returnSection" class="content hidden">
+  <div id="returnForm">
+    <div class="section-title">반납 정보 입력</div>
+    <div class="form-group">
+      <label class="form-label">이름</label>
+      <input class="form-input" type="text" id="retName" placeholder="이름을 입력하세요">
+    </div>
+    <div class="form-group">
+      <label class="form-label">학번</label>
+      <input class="form-input" type="text" id="retStudentId" placeholder="학번을 입력하세요">
+    </div>
+    <div class="form-group">
+      <label class="form-label">반납 물품 사진</label>
+      <div class="upload-box" onclick="document.getElementById('retFile').click()">
+        <input type="file" id="retFile" accept="image/*" style="display:none" onchange="previewImage(event,'retPreview','retUploadContent')">
+        <div id="retUploadContent">
+          <div class="upload-icon">📸</div>
+          <div class="upload-text">반납할 물품 사진을 찍어 업로드하세요<br><span style="font-size:10px;color:#b0bcd8;">클릭해서 사진을 선택하세요</span></div>
+        </div>
+        <img id="retPreview" class="upload-preview">
+      </div>
+    </div>
+    <button class="btn-primary" onclick="submitReturn()">반납 완료 ✓</button>
+  </div>
+
+  <div id="returnDone" class="return-done">
+    <div class="success-icon">📦</div>
+    <div style="font-size:22px;font-weight:700;color:#1a1f3e;margin-bottom:12px;">반납 완료!</div>
+    <div class="success-msg">물품을 반납해 주셔서 감사합니다.<br>사물함을 꼭 잠가주세요.</div>
+    <div class="divider"></div>
+    <div style="font-size:13px;color:#6b7db3;">유나이트와 함께해 주셔서 감사합니다 🎓</div>
+    <button class="btn-outline" onclick="resetReturn()">처음으로 돌아가기</button>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvdeCEsITh4A5d1ij13JByfNUFYIxTk3qwoGGNb0X6Dzp9J556Vi14KzlWuX8HNW81/exec';
+
+let selectedItem = null;
+let sigCanvas, sigCtx, isSigning = false;
+let lastX, lastY;
+let hasSig = false;
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('rentSection').classList.toggle('hidden', tab !== 'rent');
+  document.getElementById('returnSection').classList.toggle('hidden', tab !== 'return');
+}
+
+function selectItem(el, name) {
+  document.querySelectorAll('.item-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedItem = name;
+  document.getElementById('nextBtn1').disabled = false;
+}
+
+function goStep2() {
+  if (!selectedItem) return;
+  document.getElementById('step1').classList.add('hidden');
+  document.getElementById('step2').classList.remove('hidden');
+  document.getElementById('selectedItemBadge').textContent = '선택 물품: ' + selectedItem;
+}
+
+function goStep1() {
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('step1').classList.remove('hidden');
+}
+
+function goStep3() {
+  const name = document.getElementById('userName').value.trim();
+  const sid = document.getElementById('userStudentId').value.trim();
+  if (!name || !sid) { alert('이름과 학번을 모두 입력해 주세요.'); return; }
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('step3').classList.remove('hidden');
+  initSig();
+}
+
+function goStep2Back() {
+  document.getElementById('step3').classList.add('hidden');
+  document.getElementById('step2').classList.remove('hidden');
+}
+
+function initSig() {
+  sigCanvas = document.getElementById('sigCanvas');
+  sigCtx = sigCanvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = sigCanvas.getBoundingClientRect();
+  sigCanvas.width = rect.width * dpr;
+  sigCanvas.height = 140 * dpr;
+  sigCtx.scale(dpr, dpr);
+  sigCtx.strokeStyle = '#2d3aad';
+  sigCtx.lineWidth = 2.5;
+  sigCtx.lineCap = 'round';
+  sigCtx.lineJoin = 'round';
+
+  function getPos(e) {
+    const r = sigCanvas.getBoundingClientRect();
+    if (e.touches) return { x: e.touches[0].clientX - r.left, y: e.touches[0].clientY - r.top };
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  sigCanvas.addEventListener('mousedown', e => { isSigning = true; const p = getPos(e); lastX = p.x; lastY = p.y; });
+  sigCanvas.addEventListener('mousemove', e => {
+    if (!isSigning) return;
+    const p = getPos(e);
+    sigCtx.beginPath(); sigCtx.moveTo(lastX, lastY); sigCtx.lineTo(p.x, p.y); sigCtx.stroke();
+    lastX = p.x; lastY = p.y; hasSig = true;
+  });
+  sigCanvas.addEventListener('mouseup', () => { isSigning = false; });
+  sigCanvas.addEventListener('touchstart', e => { e.preventDefault(); isSigning = true; const p = getPos(e); lastX = p.x; lastY = p.y; }, { passive: false });
+  sigCanvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!isSigning) return;
+    const p = getPos(e);
+    sigCtx.beginPath(); sigCtx.moveTo(lastX, lastY); sigCtx.lineTo(p.x, p.y); sigCtx.stroke();
+    lastX = p.x; lastY = p.y; hasSig = true;
+  }, { passive: false });
+  sigCanvas.addEventListener('touchend', () => { isSigning = false; });
+}
+
+function clearSig() {
+  if (sigCtx) { sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height); hasSig = false; }
+}
+
+function showLoading(show) {
+  document.getElementById('loadingOverlay').classList.toggle('show', show);
+}
+
+async function sendToSheet(data) {
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+async function submitRent() {
+  if (!hasSig) { alert('서약서에 전자서명을 해주세요.'); return; }
+  showLoading(true);
+  try {
+    await sendToSheet({
+      type: '대여',
+      name: document.getElementById('userName').value.trim(),
+      studentId: document.getElementById('userStudentId').value.trim(),
+      item: selectedItem
+    });
+    document.getElementById('step3').classList.add('hidden');
+    document.getElementById('successScreen').style.display = 'block';
+  } catch(e) {
+    alert('전송 중 오류가 발생했습니다. 다시 시도해 주세요.');
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function submitReturn() {
+  const name = document.getElementById('retName').value.trim();
+  const sid = document.getElementById('retStudentId').value.trim();
+  if (!name || !sid) { alert('이름과 학번을 입력해 주세요.'); return; }
+  const preview = document.getElementById('retPreview');
+  if (preview.style.display !== 'block') { alert('반납 물품 사진을 업로드해 주세요.'); return; }
+  showLoading(true);
+  try {
+    await sendToSheet({
+      type: '반납',
+      name: name,
+      studentId: sid
+    });
+    document.getElementById('returnForm').style.display = 'none';
+    document.getElementById('returnDone').style.display = 'block';
+  } catch(e) {
+    alert('전송 중 오류가 발생했습니다. 다시 시도해 주세요.');
+  } finally {
+    showLoading(false);
+  }
+}
+
+function resetRent() {
+  selectedItem = null;
+  document.querySelectorAll('.item-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('nextBtn1').disabled = true;
+  document.getElementById('userName').value = '';
+  document.getElementById('userStudentId').value = '';
+  document.getElementById('idPreview').style.display = 'none';
+  document.getElementById('idUploadContent').style.display = 'block';
+  hasSig = false;
+  document.getElementById('successScreen').style.display = 'none';
+  document.getElementById('step2').classList.add('hidden');
+  document.getElementById('step3').classList.add('hidden');
+  document.getElementById('step1').classList.remove('hidden');
+}
+
+function resetReturn() {
+  document.getElementById('retName').value = '';
+  document.getElementById('retStudentId').value = '';
+  document.getElementById('retPreview').style.display = 'none';
+  document.getElementById('retUploadContent').style.display = 'block';
+  document.getElementById('returnForm').style.display = 'block';
+  document.getElementById('returnDone').style.display = 'none';
+}
+
+function previewImage(event, previewId, contentId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(previewId);
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById(contentId).style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+</script>
+</body>
+</html>
