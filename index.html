@@ -329,12 +329,15 @@ function showLoading(show) {
 }
 
 async function sendToSheet(data) {
-  const formData = new FormData();
-  formData.append('data', JSON.stringify(data));
-  await fetch(SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    body: formData
+  const params = new URLSearchParams({
+    type: data.type,
+    name: data.name,
+    studentId: data.studentId,
+    item: data.item || ''
+  });
+  await fetch(SCRIPT_URL + '?' + params.toString(), {
+    method: 'GET',
+    mode: 'no-cors'
   });
 }
 
